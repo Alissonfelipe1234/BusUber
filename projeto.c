@@ -47,22 +47,28 @@ int main (void)
             }
             int ponteiro = (qtdUsers+1)/2;
             int max_elem = qtdUsers + 1;
-            int max_elem = 1;
+            int min_elem = 1;
             int cont = 0;
             do
-            {   int result =strcmp(usuarios[ponteiro],linhaComparar;
-                if (result == 0)
+            {
+                int result =strcmp(usuarios[ponteiro],linhaComparar);
+                if (result > 0)
+                {
+                    min_elem = ponteiro;
+                    ponteiro = ((max_elem - min_elem) / 2) + min_elem;
+                }
+                else if(result < 0)
+                {
+                    max_elem = max_elem / 2;
+                    ponteiro = max_elem / 2;
+                }
+                else
                 {
                     errorLogin = false;
                     login = true;
                     goto logou;
                 }
-                else if(result < 0)
-                {
-
-                }
-
-            }
+            }while(min_elem - max_elem == 0);
             break;
         case 2:
             printf("Escolha um nome de usuario: ");
@@ -73,7 +79,8 @@ int main (void)
             return 0;
     }
     logou:
-
+    if(login == true)
+        printf("\nSeja Bem vindo\n");
 
 
     return 1;
