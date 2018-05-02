@@ -4,9 +4,9 @@
 #include <stdbool.h>
 int main (void)
 {
-    char caminho[]="FlashBD.txt", linha[125], respostaUsuario[50], senhaUsuario[8];
+    char caminho[]="FlashBD.txt", linha[125], linhaComparar[125], respostaUsuario[117], senhaUsuario[8];
     int linNum = 0, qtdUsers, escolha;
-    bool login = false;
+    bool login = false, errorLogin = false;
     FILE *arq;
 
     arq = fopen(caminho, "r+"); //r + = Abre um arquivo para atualizar leitura e gravação. O arquivo deve existir.
@@ -31,9 +31,38 @@ int main (void)
     switch (escolha)
     {
         case 1:
+            naoExisteUser:
+            if (errorLogin = true)
+                printf("Usuario ou Senha errados, tente novamente\n");
             printf("Digite o nome do Usuario: ");
             scanf("%s", &respostaUsuario);
-            login = logar(usuarios, respostaUsuario);
+            printf("Digite sua senha: ");
+            scanf("%s", &senhaUsuario);
+            strcpy(linhaComparar, respostaUsuario);
+            strcat(linhaComparar, senhaUsuario);
+            if ((strcmp(usuarios[1],linhaComparar) < 0) ||(strcmp(usuarios[qtdUsers+1],linhaComparar) > 0))
+            {
+                errorLogin = true;
+                goto naoExisteUser;
+            }
+            int ponteiro = (qtdUsers+1)/2;
+            int max_elem = qtdUsers + 1;
+            int max_elem = 1;
+            int cont = 0;
+            do
+            {   int result =strcmp(usuarios[ponteiro],linhaComparar;
+                if (result == 0)
+                {
+                    errorLogin = false;
+                    login = true;
+                    goto logou;
+                }
+                else if(result < 0)
+                {
+
+                }
+
+            }
             break;
         case 2:
             printf("Escolha um nome de usuario: ");
@@ -43,16 +72,11 @@ int main (void)
             printf("Saindo... OK");
             return 0;
     }
+    logou:
 
 
 
     return 1;
-}
-
-bool logar (char bd [][125], char nome[] )
-{
-
-    return 0;
 }
 /* Validação de CPF
 inline bool validaCPF(const int * const cpf)
