@@ -17,9 +17,10 @@ int main (void)
         return 0;
     }
     fscanf(arq, "%i", &qtdUsers);
-    char usuarios[qtdUsers+1][255];
+    char usuarios[qtdUsers][255];
     printf("numero de usuarios cadastrados: %i \nConectando com o Banco de dados...", qtdUsers);
-    while (linNum <= qtdUsers)
+    fgets(&usuarios[0], &linNum, arq);
+    while (linNum < qtdUsers)
     {
         linNum++;
 		fgets(&usuarios[linNum], &linNum, arq);
@@ -32,35 +33,47 @@ int main (void)
     {
         case 1:
             naoExisteUser:
-            if (errorLogin = true)
+            if (errorLogin == true)
                 printf("Usuario ou Senha errados, tente novamente\n");
             printf("Digite o nome do Usuario: ");
             scanf("%s", &respostaUsuario);
             printf("Digite sua senha: ");
             scanf("%s", &senhaUsuario);
             strcpy(linhaComparar, respostaUsuario);
+            strcat(linhaComparar, " ");
             strcat(linhaComparar, senhaUsuario);
-            if ((strcmp(usuarios[1],linhaComparar) < 0) ||(strcmp(usuarios[qtdUsers+1],linhaComparar) > 0))
+            /*
+            if ((strcmp(usuarios[1],linhaComparar) > 0) || (strcmp(usuarios[qtdUsers],linhaComparar) < 0))
             {
+                printf("linha 1: %s\n", usuarios[1]);
+                printf("linha ultimo: %s\n", usuarios[qtdUsers]);
+                printf("linha comp: %s\n", linhaComparar);
                 errorLogin = true;
                 goto naoExisteUser;
             }
-            int ponteiro = (qtdUsers+1)/2;
-            int max_elem = qtdUsers + 1;
-            int min_elem = 1;
+            */
+            int ponteiro = (qtdUsers)/2;
+            int max_elem = qtdUsers;
+            int min_elem = 0;
             int cont = 0;
+            printf("Consultando base de dados...");
             do
             {
                 int result =strcmp(usuarios[ponteiro],linhaComparar);
-                if (result > 0)
+                printf("%s, %s\n", usuarios[ponteiro], linhaComparar);
+                if (result < 0)
                 {
                     min_elem = ponteiro;
-                    ponteiro = ((max_elem - min_elem) / 2) + min_elem;
+                    ponteiro = (max_elem - min_elem) /2 + min_elem;
+                    ponteiro ++;
+                    printf ("maior:\n");
                 }
-                else if(result < 0)
+                else if(result > 0)
                 {
-                    max_elem = max_elem / 2;
-                    ponteiro = max_elem / 2;
+                    printf ("%i \n", ponteiro);
+                    max_elem = ponteiro;
+                    ponteiro = ponteiro / 2 + min_elem;
+                    printf ("menor:\n");
                 }
                 else
                 {
@@ -68,7 +81,12 @@ int main (void)
                     login = true;
                     goto logou;
                 }
-            }while(min_elem - max_elem == 0);
+                printf("min :%i, max: %i, ponteiro: %i\n", min_elem, max_elem, ponteiro);
+            }while(max_elem - min_elem > 0);
+
+            printf("OK\n");
+            errorLogin = true;
+            goto naoExisteUser;
             break;
         case 2:
             printf("Escolha um nome de usuario: ");
