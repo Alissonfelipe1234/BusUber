@@ -9,7 +9,7 @@ int main (void)
     bool login = false, errorLogin = false;
     FILE *arq;
 
-    arq = fopen(caminho, "r+"); //r + = Abre um arquivo para atualizar leitura e gravação. O arquivo deve existir.
+    arq = fopen(caminho, "r"); //r + = Abre um arquivo para atualizar leitura e gravação. O arquivo deve existir.
 
 	if(arq == NULL)
     {
@@ -17,13 +17,15 @@ int main (void)
         return 0;
     }
     fscanf(arq, "%i", &qtdUsers);
+    qtdUsers --;
     char usuarios[qtdUsers][255];
     printf("numero de usuarios cadastrados: %i \nConectando com o Banco de dados...", qtdUsers);
-    fgets(&usuarios[0], &linNum, arq);
-    while (linNum < qtdUsers)
+    fgets(&linha, &linNum, arq);
+    while (linNum <= qtdUsers)
     {
         linNum++;
-		fgets(&usuarios[linNum], &linNum, arq);
+		fgets(&usuarios[linNum-1], &linNum, arq);
+		printf("\n%s \n", usuarios[linNum-1]);
     }
     printf("OK\n");
     fclose(arq);
@@ -42,16 +44,16 @@ int main (void)
             strcpy(linhaComparar, respostaUsuario);
             strcat(linhaComparar, " ");
             strcat(linhaComparar, senhaUsuario);
-            /*
-            if ((strcmp(usuarios[1],linhaComparar) > 0) || (strcmp(usuarios[qtdUsers],linhaComparar) < 0))
+            strcat(linhaComparar, "\n");
+
+            if ((strcmp(usuarios[0],linhaComparar) > 0) || (strcmp(usuarios[qtdUsers],linhaComparar) < 0))
             {
-                printf("linha 1: %s\n", usuarios[1]);
+                printf("linha 1: %s\n", usuarios[0]);
                 printf("linha ultimo: %s\n", usuarios[qtdUsers]);
                 printf("linha comp: %s\n", linhaComparar);
                 errorLogin = true;
                 goto naoExisteUser;
             }
-            */
             int ponteiro = (qtdUsers)/2;
             int max_elem = qtdUsers;
             int min_elem = 0;
@@ -62,27 +64,18 @@ int main (void)
                 int result =strcmp(usuarios[ponteiro],linhaComparar);
                 printf("%s, %s\n", usuarios[ponteiro], linhaComparar);
                 if (result < 0)
-                {
-                    min_elem = ponteiro;
-                    ponteiro = (max_elem - min_elem) /2 + min_elem;
-                    ponteiro ++;
-                    printf ("maior:\n");
-                }
+                    min_elem = ponteiro + 1;
                 else if(result > 0)
-                {
-                    printf ("%i \n", ponteiro);
                     max_elem = ponteiro;
-                    ponteiro = ponteiro / 2 + min_elem;
-                    printf ("menor:\n");
-                }
                 else
                 {
                     errorLogin = false;
                     login = true;
                     goto logou;
                 }
+                ponteiro = (min_elem + (max_elem/2));
                 printf("min :%i, max: %i, ponteiro: %i\n", min_elem, max_elem, ponteiro);
-            }while(max_elem - min_elem > 0);
+            }while(ponteiro >= min_elem && ponteiro <= max_elem);
 
             printf("OK\n");
             errorLogin = true;
