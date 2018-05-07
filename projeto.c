@@ -4,7 +4,7 @@
 #include <stdbool.h>
 int main (void)
 {
-    char caminho[]="FlashBD.txt", linha[125], linhaComparar[125], respostaUsuario[117], senhaUsuario[8];
+    char caminho[]="FlashBD.txt", linha[125], linhaComparar[125], respostaUsuario[117], senhaUsuario[8], cpf[11];
     int linNum = 0, qtdUsers, escolha;
     bool login = false, errorLogin = false;
     FILE *arq;
@@ -25,7 +25,6 @@ int main (void)
     {
         linNum++;
 		fgets(&usuarios[linNum-1], &linNum, arq);
-		printf("\n%s \n", usuarios[linNum-1]);
     }
     printf("OK\n");
     fclose(arq);
@@ -82,12 +81,55 @@ int main (void)
             goto naoExisteUser;
             break;
         case 2:
+            retornarCadastro:
+            printf("Digite seu CPF (Sem pontos ou espacos): ");
+            scanf("%s", cpf);
+            strcat(cpf, "\n");
+            if (strlen(cpf)<11)
+            {
+                printf("CPF invalido por nao possuir numeros suficientes \n");
+                goto retornarCadastro;
+            }
+            //if(validaCPF(cpf))
+            arq = fopen("ValidaCPF.txt", "r+");
+            if(arq == NULL)
+            {
+                printf("Erro, nao foi possivel abrir o arquivo de CPF\n");
+                return 0;
+            }
+            printf("Consultando o Banco de dados...");
+            bool existe = false;
+            bool parar = false;
+            fscanf(arq, "%i", &qtdUsers);
+            char cpfs[qtdUsers+1][11];
+            linNum = 1;
+            //fgets(&linha, &linNum, arq);
+            do
+            {
+                linNum++;
+                fgets(&cpfs[linNum-2], &linNum, arq);
+                printf("\n%s", cpfs[linNum-2]);
+                int cmp = strcmp(cpfs[linNum-2], cpf);
+                if(cmp == 0)
+                    existe = true;
+                else if(cmp > 0)
+                    parar = true;
+            }while (linNum < qtdUsers && (existe == false && parar == false));
+            printf("OK\n");
+            if(existe == true)
+            {
+                printf("Usuario ja existe, tente novamente\n");
+                goto retornarCadastro;
+            }
+            printf("OK\n");
             printf("Escolha um nome de usuario: ");
 
+            fclose(arq);
+
             break;
-        default:
+//        default:
             printf("Saindo... OK");
-            return 0;
+            //return 0;
     }
     logou:
     if(login == true)
