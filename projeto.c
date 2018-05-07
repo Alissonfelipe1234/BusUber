@@ -108,13 +108,13 @@ int main (void)
             {
                 linNum++;
                 fgets(&cpfs[linNum-2], &linNum, arq);
-                printf("\n%s", cpfs[linNum-2]);
+                //printf("\n%s", cpfs[linNum-2]);
                 int cmp = strcmp(cpfs[linNum-2], cpf);
                 if(cmp == 0)
                     existe = true;
                 else if(cmp > 0)
                     parar = true;
-            }while (linNum < qtdUsers && (existe == false && parar == false));
+            }while (linNum <= qtdUsers && (existe == false && parar == false));
             printf("OK\n");
             if(existe == true)
             {
@@ -122,8 +122,21 @@ int main (void)
                 goto retornarCadastro;
             }
             printf("OK\n");
-            printf("Escolha um nome de usuario: ");
-
+            nomeInv:
+            printf("Escolha um nome de usuario [Até 117 caracteres]: ");
+            scanf("%s", &respostaUsuario);
+            //if(nomeJáExiste);
+            if(strlen(respostaUsuario)==0)
+            {
+                 printf("Nome invalido, tente novamente");
+                 goto nomeInv;
+            }
+            printf("Digite sua senha [Exatamente 8 caracteres]: ");
+            scanf("%s", &senhaUsuario);
+            strcpy(linhaComparar, respostaUsuario);
+            strcat(linhaComparar, " ");
+            strcat(linhaComparar, senhaUsuario);
+            strcat(linhaComparar, "\n");
             fclose(arq);
 
             break;
