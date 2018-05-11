@@ -2,14 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <windows.h>
+#include <locale.h>
+
+typedef struct {
+    char key[125],
+    user[117],
+    pass[8],
+    cpf[11];
+
+}cliente;
+
+FILE *arq;
+
 int main (void)
 {
-    char caminho[]="FlashBD.txt", linha[125], linhaComparar[125], respostaUsuario[117], senhaUsuario[8], cpf[11];
-    int linNum = 0, qtdUsers, escolha;
-    bool login = false, errorLogin = false;
-    FILE *arq;
+    configurarAmbiente();
+    char bd[] = "FlashBD.txt", cpfs[] = "ValidaCPF.txt", time[] = "RotasTempo.txt", price[] = "RotasPreco.txt";
+    int qtdUsers;
 
-    arq = fopen(caminho, "r"); //r + = Abre um arquivo para atualizar leitura e gravação. O arquivo deve existir.
+    char linha[125], linhaComparar[125], respostaUsuario[117], senhaUsuario[8], cpf[11];
+    int linNum = 0, escolha;
+    bool login = false, errorLogin = false;
+
+
+    arq = fopen(bd, "r");
 
 	if(arq == NULL)
     {
@@ -20,11 +37,12 @@ int main (void)
     qtdUsers --;
     char usuarios[qtdUsers][255];
     printf("numero de usuarios cadastrados: %i \nConectando com o Banco de dados...", qtdUsers);
-    fgets(&linha, &linNum, arq);
+    //fgets(&linha, &linNum, arq);
     while (linNum <= qtdUsers)
     {
+        fscanf(arq, "%s", &usuarios[linNum]);
+        printf("%s \n", usuarios[linNum]);
         linNum++;
-		fgets(&usuarios[linNum-1], &linNum, arq);
     }
     printf("OK\n");
     fclose(arq);
@@ -185,3 +203,9 @@ inline bool validaCPF(const int * const cpf)
         return false;
 }
 */
+
+void configurarAmbiente (){
+    setlocale(LC_ALL, "Portuguese");
+    system("COLOR F0");
+    system("cls");
+}
