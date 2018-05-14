@@ -13,170 +13,213 @@ typedef struct {
 
 }cliente;
 
+cliente usuario;
 FILE *arq;
+int qtdUsuarios, security;
+bool login, errorLogin;
 
 int main (void)
 {
-    configurarAmbiente();
-    char bd[] = "FlashBD.txt", cpfs[] = "ValidaCPF.txt", time[] = "RotasTempo.txt", price[] = "RotasPreco.txt";
-    int qtdUsers;
+    char bds[][120] = {"FlashBD.txt","ValidaCPF.txt","RotasTempo.txt","RotasPreco.txt"};
+    int linha = 0, escolha;
+    errorLogin = false;
+    login = false;
+    qtdUsuarios = -1;
 
-    char linha[125], linhaComparar[125], respostaUsuario[117], senhaUsuario[8], cpf[11];
-    int linNum = 0, escolha;
-    bool login = false, errorLogin = false;
-
-
-    arq = fopen(bd, "r");
-
+    arq = fopen(bds[0], "r");
 	if(arq == NULL)
     {
         printf("Erro, nao foi possivel abrir o arquivo\n");
         return 0;
     }
-    fscanf(arq, "%i", &qtdUsers);
-    qtdUsers --;
-    char usuarios[qtdUsers][255];
-    printf("numero de usuarios cadastrados: %i \nConectando com o Banco de dados...", qtdUsers);
-    //fgets(&linha, &linNum, arq);
-    while (linNum <= qtdUsers)
+
+    fscanf(arq, "%i", &qtdUsuarios);
+
+    cliente clientes[qtdUsuarios];
+
+    printf("Conectando com o Banco de dados...");
+    while (linha <= qtdUsuarios)
     {
-        fscanf(arq, "%s", &usuarios[linNum]);
-        printf("%s \n", usuarios[linNum]);
-        linNum++;
+        fscanf(arq, "%s", &clientes[linha].user);
+        fscanf(arq, "%s", &clientes[linha].pass);
+        strcpy(clientes[linha].key, "");
+        strcat(clientes[linha].key, clientes[linha].user);
+        strcat(clientes[linha].key, " ");
+        strcat(clientes[linha].key, clientes[linha].pass);
+        printf("%i %s \n", linha, clientes[linha].key);
+        linha++;
     }
-    printf("OK\n");
     fclose(arq);
+    printf("OK\n");
+
+    configurarAmbiente();
+    printf("           **************************************************************************************************\n");
+    printf("           *                                        BusUber                                                 *\n");
+    printf("           *                                                                                                *\n");
+    printf("           *                     Busque por melhores rotas de onibus em segundos                            *\n");
+    printf("           *                                                                                                *\n");
+    printf("           *                                                todos os direitos reservados - copyright - 2018 *\n");
+    printf("           *                                                                                                *\n");
+    printf("           **************************************************************************************************\n");
     printf("Escolha entre uma das opcoes: \n1-Login \n2-Cadastro \n3-Sair \nResposta: ");
     scanf("%d", &escolha);
+
     switch (escolha)
     {
         case 1:
-            naoExisteUser:
-            if (errorLogin == true)
-                printf("Usuario ou Senha errados, tente novamente\n");
-            printf("Digite o nome do Usuario: ");
-            scanf("%s", &respostaUsuario);
-            printf("Digite sua senha: ");
-            scanf("%s", &senhaUsuario);
-            strcpy(linhaComparar, respostaUsuario);
-            strcat(linhaComparar, " ");
-            strcat(linhaComparar, senhaUsuario);
-            strcat(linhaComparar, "\n");
-
-            if ((strcmp(usuarios[0],linhaComparar) > 0) || (strcmp(usuarios[qtdUsers],linhaComparar) < 0))
+            while (errorLogin == true || login == false)
             {
-                printf("linha 1: %s\n", usuarios[0]);
-                printf("linha ultimo: %s\n", usuarios[qtdUsers]);
-                printf("linha comp: %s\n", linhaComparar);
-                errorLogin = true;
-                goto naoExisteUser;
+            configurarAmbiente();
+            if(errorLogin == true)
+                printf("erro ao realizar login, por favor tente novamente\n");
+
+            logar(&clientes);
             }
-            int ponteiro = (qtdUsers)/2;
-            int max_elem = qtdUsers;
-            int min_elem = 0;
-            int cont = 0;
-            printf("Consultando base de dados...");
-            do
-            {
-                int result =strcmp(usuarios[ponteiro],linhaComparar);
-                printf("%s, %s\n", usuarios[ponteiro], linhaComparar);
-                if (result < 0)
-                    min_elem = ponteiro + 1;
-                else if(result > 0)
-                    max_elem = ponteiro;
-                else
-                {
-                    errorLogin = false;
-                    login = true;
-                    goto logou;
-                }
-                ponteiro = (min_elem + (max_elem/2));
-                printf("min :%i, max: %i, ponteiro: %i\n", min_elem, max_elem, ponteiro);
-            }while(ponteiro >= min_elem && ponteiro <= max_elem);
 
-            printf("OK\n");
-            errorLogin = true;
-            goto naoExisteUser;
             break;
         case 2:
-            retornarCadastro:
-            printf("Digite seu CPF (Sem pontos ou espacos): ");
-            scanf("%s", cpf);
-            strcat(cpf, "\n");
-            if (strlen(cpf)<11)
-            {
-                printf("CPF invalido por nao possuir numeros suficientes \n");
-                goto retornarCadastro;
-            }
-            //if(validaCPF(cpf))
-            arq = fopen("ValidaCPF.txt", "r+");
-            if(arq == NULL)
-            {
-                printf("Erro, nao foi possivel abrir o arquivo de CPF\n");
-                return 0;
-            }
-            printf("Consultando o Banco de dados...");
-            bool existe = false;
-            bool parar = false;
-            fscanf(arq, "%i", &qtdUsers);
-            char cpfs[qtdUsers+1][11];
-            linNum = 1;
-            //fgets(&linha, &linNum, arq);
-            do
-            {
-                linNum++;
-                fgets(&cpfs[linNum-2], &linNum, arq);
-                //printf("\n%s", cpfs[linNum-2]);
-                int cmp = strcmp(cpfs[linNum-2], cpf);
-                if(cmp == 0)
-                    existe = true;
-                else if(cmp > 0)
-                    parar = true;
-            }while (linNum <= qtdUsers && (existe == false && parar == false));
-            printf("OK\n");
-            if(existe == true)
-            {
-                printf("Usuario ja existe, tente novamente\n");
-                goto retornarCadastro;
-            }
-            printf("OK\n");
-            nomeInv:
-            printf("Escolha um nome de usuario [Até 117 caracteres]: ");
-            scanf("%s", &respostaUsuario);
-            //if(nomeJáExiste);
-            if(strlen(respostaUsuario)==0)
-            {
-                 printf("Nome invalido, tente novamente");
-                 goto nomeInv;
-            }
-            printf("Digite sua senha [Exatamente 8 caracteres]: ");
-            scanf("%s", &senhaUsuario);
-            strcpy(linhaComparar, respostaUsuario);
-            strcat(linhaComparar, " ");
-            strcat(linhaComparar, senhaUsuario);
-            strcat(linhaComparar, "\n");
-            fclose(arq);
-
+            cadastrar(&clientes, &bds[1]);
             break;
-//        default:
+        default:
             printf("Saindo... OK");
             //return 0;
     }
-    logou:
+
     if(login == true)
+    {
+        configurarAmbiente();
         printf("\nSeja Bem vindo\n");
+    }
 
 
+
+
+
+    system("pause");
     return 1;
+
 }
-/* Validação de CPF
-inline bool validaCPF(const int * const cpf)
+
+void configurarAmbiente ()
+{
+    setlocale(LC_ALL, "Portuguese");
+    system("COLOR F0");
+    system("cls");
+    system("TITLE BusUber ltda");
+}
+void logar(cliente* bd)
+{
+    errorLogin = false;
+    login = false;
+
+    printf("Digite o nome do Usuario: ");
+    scanf("%s", &usuario.user);
+    printf("Digite sua senha: ");
+    scanf("%s", &usuario.pass);
+
+    strcpy(usuario.key, usuario.user);
+    strcat(usuario.key, " ");
+    strcat(usuario.key, usuario.pass);
+
+    printf("Consultando base de dados...");
+
+    if ((strcmp(bd[0].key, usuario.key) > 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) < 0))
+        errorLogin = true;
+
+    int meio = qtdUsuarios/2;
+    int max_elem = qtdUsuarios;
+    int min_elem = 0;
+    int cont = 0;
+    //entrando em loop
+    while((meio >= min_elem && meio <= max_elem) && login == false)
+    {
+        int result = strcmp(bd[meio].key, usuario.key);
+
+        if (result < 0)
+            min_elem = meio + 1;
+        else if(result > 0)
+            max_elem = meio;
+        else
+        {
+            security = meio;
+            login = true;
+        }
+        meio = (min_elem + (max_elem/2));
+    }
+    if(login == false)
+        errorLogin = true;
+    printf("OK\n");
+}
+void cadastrar (cliente* bd, char* cpfs)
+{
+    do
+    {
+        errorLogin = false;
+        printf("Digite seu CPF (Apenas numeros): ");
+        scanf("%s", usuario.cpf);
+        configurarAmbiente();
+        if (strlen(usuario.cpf)<11)
+        {
+            printf("CPF invalido por nao possuir numeros suficientes\n");
+            errorLogin = true;
+        }
+        else
+        {
+            int verifica[11];
+            for(int l = 0; l < 11; l++)
+                verifica[l] = usuario.cpf[l] - '0';
+            if(validaCPF(&verifica) == 0)
+            {
+                printf("CPF invalido\n");
+                errorLogin = true;
+            }
+        }
+
+        if(errorLogin == false)
+        {
+            printf("Consultando o Banco de dados...");
+
+            arq = fopen(cpfs, "r");
+            if(arq == NULL)
+            {
+                printf(" Erro, nao foi possivel conectar ao banco de de CPF\n");
+                return 0;
+            }
+            for(int c = 0; c < qtdUsuarios; c++)
+            {
+                fscanf(arq, &bd[c].cpf);
+                if(strcmp(bd[c].cpf, usuario.cpf) == 0)
+                {
+                    errorLogin = true;
+                    printf("Erro, CPF já cadastrado, tente novamente");
+                }
+            }
+            fclose(arq);
+            if(errorLogin == false)
+            {
+                printf("OK\n");
+                printf("Escolha um nome de usuario [Até 117 caracteres]: ");
+                scanf("%s", &usuario.user);
+                printf("Digite sua senha [Exatamente 6 caracteres]: ");
+                scanf("%s", &usuario.pass);
+                strcpy(usuario.key, usuario.user);
+                strcat(usuario.key, " ");
+                strcat(usuario.key, usuario.pass);
+
+                int i = existe(&bd, &usuario);
+            }
+        }
+    }while (errorLogin == true);
+
+}
+
+int validaCPF(const int* cpf)
 {
     int digito1,
         digito2,
         temp = 0;
 
-    for(char i = 0; i < 9; i++)
+    for(int i = 0; i < 9; i++)
         temp += (cpf[i] * (10 - i));
 
     temp %= 11;
@@ -198,14 +241,32 @@ inline bool validaCPF(const int * const cpf)
         digito2 = 11 - temp;
 
     if(digito1 == cpf[9] && digito2 == cpf[10])
-        return true;
-    else
-        return false;
-}
-*/
+        return 1;
 
-void configurarAmbiente (){
-    setlocale(LC_ALL, "Portuguese");
-    system("COLOR F0");
-    system("cls");
+    return 0;
 }
+int existe(cliente* bd, cliente c)
+{
+    int meio = qtdUsuarios/2;
+    int max_elem = qtdUsuarios;
+    int min_elem = 0;
+    int cont = 0;
+
+    while(meio >= min_elem && meio <= max_elem)
+    {
+        int result = strcmp(bd[meio].key, c.key);
+
+        if (result < 0)
+            min_elem = meio + 1;
+        else if(result > 0)
+            max_elem = meio;
+        else
+        {
+            security = meio;
+            return 1;
+        }
+        meio = (min_elem + (max_elem/2));
+    }
+    return 0;
+}
+
