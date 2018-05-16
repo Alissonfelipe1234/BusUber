@@ -42,8 +42,7 @@ int main (void)
     {
         fscanf(arq, "%s", &clientes[linha].user);
         fscanf(arq, "%s", &clientes[linha].pass);
-        strcpy(clientes[linha].key, "");
-        strcat(clientes[linha].key, clientes[linha].user);
+        strcpy(clientes[linha].key, clientes[linha].user);
         strcat(clientes[linha].key, " ");
         strcat(clientes[linha].key, clientes[linha].pass);
         printf("%i %s \n", linha, clientes[linha].key);
@@ -69,10 +68,11 @@ int main (void)
         case 1:
             while (errorLogin == true || login == false)
             {
-            configurarAmbiente();
+            //configurarAmbiente();
             if(errorLogin == true)
                 printf("erro ao realizar login, por favor tente novamente\n");
-
+            login = false;
+            errorLogin = false;
             logar(&clientes);
             }
 
@@ -87,7 +87,7 @@ int main (void)
 
     if(login == true)
     {
-        configurarAmbiente();
+        //configurarAmbiente();
         printf("\nSeja Bem vindo\n");
     }
 
@@ -121,33 +121,40 @@ void logar(cliente* bd)
     strcat(usuario.key, " ");
     strcat(usuario.key, usuario.pass);
 
-    printf("Consultando base de dados...");
-
-    if ((strcmp(bd[0].key, usuario.key) > 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) < 0))
-        errorLogin = true;
+    //if ((strcmp(bd[0].key, usuario.key) < 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) > 0))
+      //  errorLogin = true;
 
     int meio = qtdUsuarios/2;
     int max_elem = qtdUsuarios;
     int min_elem = 0;
-    int cont = 0;
-    //entrando em loop
-    while((meio >= min_elem && meio <= max_elem) && login == false)
+    int result = strcmp(bd[meio].key, usuario.key);
+    while(result!=0 && (meio >= min_elem && meio <= max_elem))
     {
         int result = strcmp(bd[meio].key, usuario.key);
-
         if (result < 0)
-            min_elem = meio + 1;
-        else if(result > 0)
-            max_elem = meio;
-        else
         {
-            security = meio;
-            login = true;
+            min_elem = meio + 1;
+            meio = (min_elem + (max_elem/2));
         }
-        meio = (min_elem + (max_elem/2));
+        if (result > 0)
+        {
+            max_elem = meio;
+            meio = (min_elem + (max_elem/2));
+        }
+        if (result == 0)
+        {
+            printf("logou!");
+            login = true;
+
+        }
+        printf("meio: %i, ini: %i, fim: %i. 1:%s: 2:%s:\n %i\n", meio, min_elem, max_elem, bd[meio].key, usuario.key, result);
     }
     if(login == false)
+    {
+        printf ("deu erro");
         errorLogin = true;
+    }
+
     printf("OK\n");
 }
 void cadastrar (cliente* bd, char* cpfs)
