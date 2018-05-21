@@ -20,7 +20,7 @@ bool login, errorLogin;
 
 int main (void)
 {
-    char bds[][120] = {"FlashBD.txt","ValidaCPF.txt","RotasTempo.txt","RotasPreco.txt"};
+    char bds[][120] = {"FlashBD.txt","ValidaCPF.txt","Rotas.txt"};
     int linha = 0, escolha;
     errorLogin = false;
     login = false;
