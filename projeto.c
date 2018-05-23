@@ -65,12 +65,12 @@ int main (void)
     switch (escolha)
     {
         case 1:
-            while (errorLogin == true || login == false)
+            while (errorLogin || !login)
             {
 
             configurarAmbiente();
             configurarAmbiente();
-            if(errorLogin == true)
+            if(errorLogin)
                 printf("erro ao realizar login, por favor tente novamente\n");
             login = false;
             errorLogin = false;
@@ -87,7 +87,7 @@ int main (void)
             //return 0;
     }
 
-    if(login == true)
+    if(login)
     {
         configurarAmbiente();
         system("COLOR A0");
@@ -136,7 +136,7 @@ void logar(cliente* bd)
     if ((strcmp(bd[0].key, usuario.key)  > 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) < 0))
     {
         errorLogin = true;
-        printf("Erro ao logar, usuario não pode existir nesse banco");
+        printf("Erro ao logar, usuario nï¿½o pode existir nesse banco");
         goto err;
     }
 
@@ -165,7 +165,7 @@ void logar(cliente* bd)
     while(query != 0 && (meio >= min_elem && meio <= max_elem));
 
     err:
-    if(login == false)
+    if(!login)
     {
         errorLogin = true;
     }
@@ -197,7 +197,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
             }
         }
 
-        if(errorLogin == false)
+        if(!errorLogin)
         {
             printf("Consultando o Banco de dados...");
 
@@ -207,23 +207,23 @@ void cadastrar (cliente* bd, char* cpfsPath)
                 printf(" Erro \nNao foi possivel conectar ao banco de de CPF\n");
                 return 0;
             }
-            for(int c = 0; c < qtdUsuarios && errorLogin == false; c++)
+            for(int c = 0; c < qtdUsuarios && !errorLogin; c++)
             {
                 fscanf(arq, "%s", &bd[c].cpf);
                 if(strcmp(bd[c].cpf, usuario.cpf) == 0)
                 {
                     errorLogin = true;
-                    printf("Erro\nCPF já cadastrado, tente novamente\n");
+                    printf("Erro\nCPF jï¿½ cadastrado, tente novamente\n");
                 }
             }
             fclose(arq);
-            if(errorLogin == false)
+            if(!errorLogin)
             {
                 printf("OK\n");
                 int i = 1;
                 do
                 {
-                    printf("Escolha um nome de usuario [Até 117 caracteres]: ");
+                    printf("Escolha um nome de usuario [Atï¿½ 117 caracteres]: ");
                     scanf("%s", &usuario.user);
                     printf("Digite sua senha [Exatamente 6 caracteres]: ");
                     scanf("%s", &usuario.pass);
@@ -237,7 +237,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
 
             }
         }
-    }while (errorLogin == true);
+    }while (errorLogin);
     system("pause");
 }
 
@@ -279,15 +279,11 @@ int existe(cliente* bd, cliente c)
     {
         security = 0;
         return 0;
-        printf("aqui1");
-        system("pause");
     }
     if (strcmp(bd[qtdUsuarios].user, c.user) < 0)
     {
         security = qtdUsuarios;
         return 0;
-        printf("aqui1");
-        system("pause");
     }
 
     int meio = qtdUsuarios/2;
@@ -312,8 +308,6 @@ int existe(cliente* bd, cliente c)
         else
         {
             return 1;
-            printf("min: %i max: %i", min_elem, max_elem);
-        system("pause");
         }
     }
     while(meio >= min_elem && meio <= max_elem);
