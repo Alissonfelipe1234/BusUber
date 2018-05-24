@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <windows.h>
 #include <locale.h>
+#include <ctype.h>
 
 typedef struct {
     char key[125],
@@ -13,11 +14,15 @@ typedef struct {
 
 }cliente;
 
+typedef struct {
+    int tempo;
+    float preco;
+}caminho;
+
 cliente usuario;
 FILE *arq;
-int qtdUsuarios, security;
+int qtdUsuarios, security, qtdCaminhos;
 bool login, errorLogin;
-
 int main (void)
 {
     char bds[][120] = {"FlashBD.txt","ValidaCPF.txt","Rotas.txt"};
@@ -90,6 +95,7 @@ int main (void)
     if(login)
     {
         configurarAmbiente();
+        printf(" _______  _______      ___  _______    _______  _______  __   __         __   __  ___   __    _  ______   _______ \n|       ||       |    |   ||   _   |  |  _    ||       ||  |_|  |       |  | |  ||   | |  |  | ||      | |       |   \n|  _____||    ___|    |   ||  |_|  |  | |_|   ||    ___||       | ____  |  |_|  ||   | |   |_| ||  _    ||   _   |   \n| |_____ |   |___     |   ||       |  |       ||   |___ |       ||____| |       ||   | |       || | |   ||  | |  |   \n|_____  ||    ___| ___|   ||       |  |  _   | |    ___||       |       |       ||   | |  _    || |_|   ||  |_|  |   \n _____| ||   |___ |       ||   _   |  | |_|   ||   |___ | ||_|| |        |     | |   | | | |   ||       ||       |   \n|_______||_______||_______||__| |__|  |_______||_______||_|   |_|         |___|  |___| |_|  |__||______| |_______|   \n");
         system("COLOR A0");
         Sleep(100);
         system("COLOR B5");
@@ -100,7 +106,37 @@ int main (void)
         Sleep(100);
         system("COLOR C0");
         Sleep(100);
-        printf("\nSeja Bem vindo\n");
+
+        arq = fopen(bds[2], "r");
+        if(arq == NULL)
+        {
+            printf("Erro, nao foi possivel abrir o arquivo\n");
+            return 0;
+        }
+
+        fscanf(arq, "%i", &qtdCaminhos);
+        fclose(arq);
+        caminho caminhos[qtdCaminhos][qtdCaminhos];
+        lerCaminhos(&caminhos, qtdCaminhos);
+        int partida, chegada;
+        char rasc;
+        ErroNoIndice:
+        printf("Digite o local de partida: ");
+        scanf(" %c", &rasc);
+        toupper(rasc);
+        //leitura do indice do caminho apartir do caracter
+        partida = rasc - 'A';
+        printf("Digite o destino: ");
+        scanf(" %c", &rasc);
+        toupper(rasc);
+        //leitura do indice do caminho apartir do caracter
+        chegada = rasc - 'A';
+        if(partida == chegada || partida > qtdCaminhos || chegada > qtdCaminhos)
+        {
+            printf("local invalido\n");
+            goto ErroNoIndice;
+        }
+
     }
 
 
@@ -136,7 +172,7 @@ void logar(cliente* bd)
     if ((strcmp(bd[0].key, usuario.key)  > 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) < 0))
     {
         errorLogin = true;
-        printf("Erro ao logar, usuario n�o pode existir nesse banco");
+        printf("Erro ao logar, usuario não pode existir nesse banco");
         goto err;
     }
 
@@ -213,7 +249,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
                 if(strcmp(bd[c].cpf, usuario.cpf) == 0)
                 {
                     errorLogin = true;
-                    printf("Erro\nCPF j� cadastrado, tente novamente\n");
+                    printf("Erro\nCPF já cadastrado, tente novamente\n");
                 }
             }
             fclose(arq);
@@ -273,6 +309,7 @@ int validaCPF(const int* cpf)
 
     return 0;
 }
+
 int existe(cliente* bd, cliente c)
 {
     if (strcmp(bd[0].user, c.user)  > 0)
@@ -316,5 +353,20 @@ int existe(cliente* bd, cliente c)
     system("pause");
 
     return 0;
+}
+void lerCaminhos(caminho** bd, int qtd)
+{
+    int linha = 0, coluna = 0, rasc;
+    while (linha < qtd)
+    {
+        while(coluna<qtd)
+        {
+            fscanf(arq, "%d", &bd[linha][coluna].tempo);
+            coluna++;
+        }
+        coluna = 0;
+        linha++;
+    }
+
 }
 
