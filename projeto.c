@@ -135,6 +135,7 @@ int main (void)
         {
             printf("local invalido\n");
             goto ErroNoIndice;
+
         }
 
     }
