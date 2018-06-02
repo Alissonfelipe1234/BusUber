@@ -5,11 +5,12 @@
 #include <windows.h>
 #include <locale.h>
 #include <ctype.h>
+#include <limits.h>
 
 typedef struct {
     char key[125],
     user[117],
-    pass[8],
+    pass[80],
     cpf[11];
 
 }cliente;
@@ -56,14 +57,14 @@ int main (void)
     printf("OK\n");
 
     configurarAmbiente();
-    printf("           **************************************************************************************************\n");
-    printf("           *                                        BusUber                                                 *\n");
-    printf("           *                                                                                                *\n");
-    printf("           *                     Busque por melhores rotas de onibus em segundos                            *\n");
-    printf("           *                                                                                                *\n");
-    printf("           *                                                todos os direitos reservados - copyright - 2018 *\n");
-    printf("           *                                                                                                *\n");
-    printf("           **************************************************************************************************\n");
+    printf("           *****************************************************************************************************\n");
+    printf("           *               __________              ____ ______.                                                *\n           *               %c______   %c__ __  _____|    |   %c_ |__   ___________                                *\n           *                |    |  _/  |  %c/  ___/    |   /| __ %c_/ __ %c_  __ %c                               *\n           *                |    |   %c  |  /%c___ %c|    |  / | %c_%c %c  ___/|  | %c/                               *\n           *                |______  /____//____  >______/  |___  /%c___  >__|                                  *\n           *                       %c/           %c/              %c/     %c/                                      *", 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92);
+    printf("\n           *                                                                                                   *\n");
+    printf("           *                     Busque por melhores rotas de onibus em segundos                               *\n");
+    printf("           *                                                                                                   *\n");
+    printf("           *                                                todos os direitos reservados - copyright - 2018    *\n");
+    printf("           *                                                                                                   *\n");
+    printf("           *****************************************************************************************************\n");
     printf("Escolha entre uma das opcoes: \n1-Login \n2-Cadastro \n3-Sair \nResposta: ");
     scanf("%d", &escolha);
 
@@ -72,20 +73,20 @@ int main (void)
         case 1:
             while (errorLogin || !login)
             {
-
-            configurarAmbiente();
-            configurarAmbiente();
-            if(errorLogin)
-                printf("erro ao realizar login, por favor tente novamente\n");
-            login = false;
-            errorLogin = false;
-            logar(&clientes);
+                configurarAmbiente();
+                if(errorLogin)
+                    printf("erro ao realizar login, por favor tente novamente\n");
+                login = false;
+                errorLogin = false;
+                logar(&clientes);
             }
-
             break;
         case 2:
             configurarAmbiente();
-            cadastrar(&clientes, &bds[1]);
+            do{
+                cadastrar(&clientes, &bds[1]);
+            }while (errorLogin);
+            persistir(&clientes, &bds[1], &bds[0]);
             break;
         default:
             printf("Saindo... OK");
@@ -137,6 +138,36 @@ int main (void)
             goto ErroNoIndice;
 
         }
+        int menor = -1;
+        int menorCaminho [qtdCaminhos];
+        int procura [qtdCaminhos];
+        int ultimos[] = {0,0};
+        menorCaminho[0] = partida;
+
+        if(caminhos[partida][chegada].tempo > 0)
+        {
+            menor = caminhos[partida][chegada].tempo;
+            menorCaminho[1] = chegada;
+            ultimos[0] = 1;
+
+        }
+        else
+        {
+            menor = INT_MAX;
+        }
+        for(int p = 0; p < qtdCaminhos; p++)
+        {
+            if(caminhos[partida][p].tempo > 0)
+            {
+                procura[0] = partida;
+                procura[1] = p;
+                ultimos[1] = 1;
+                procuraMenor(&caminhos, &menor, &menorCaminho, &procura, &ultimos, chegada);
+            }
+        }
+        printf("menor tempo: %i\n", menor);
+        for (int d=0; d < ultimos[0]; d++)
+            printf("vai para: %i\n", menorCaminho[d]);
 
     }
 
@@ -211,8 +242,7 @@ void logar(cliente* bd)
 }
 void cadastrar (cliente* bd, char* cpfsPath)
 {
-    do
-    {
+
         errorLogin = false;
         printf("Digite seu CPF (Apenas numeros): ");
         scanf("%s", usuario.cpf);
@@ -242,7 +272,6 @@ void cadastrar (cliente* bd, char* cpfsPath)
             if(arq == NULL)
             {
                 printf(" Erro \nNao foi possivel conectar ao banco de de CPF\n");
-                return 0;
             }
             for(int c = 0; c < qtdUsuarios && !errorLogin; c++)
             {
@@ -257,27 +286,65 @@ void cadastrar (cliente* bd, char* cpfsPath)
             if(!errorLogin)
             {
                 printf("OK\n");
-                int i = 1;
-                do
+                int i = -10;
+                cliente nomes[qtdUsuarios];
+
+                for (int z = 0; z < qtdUsuarios+1; z++)
+                    strcpy(nomes[z].user, bd[z].user);
+                while (i < 0)
                 {
-                    printf("Escolha um nome de usuario [At� 117 caracteres]: ");
+                    printf("Escolha um nome de usuario: ");
                     scanf("%s", &usuario.user);
-                    printf("Digite sua senha [Exatamente 6 caracteres]: ");
-                    scanf("%s", &usuario.pass);
-                    strcpy(usuario.key, usuario.user);
-                    strcat(usuario.key, " ");
-                    strcat(usuario.key, usuario.pass);
-
-                    i = existe(&bd, &usuario);
-                } while (i == 1);
-                printf("\n FINAL: %i", security);
-
+                    i = existe(&nomes);
+                    if(i<0)
+                    {
+                        configurarAmbiente();
+                        printf("Usuario ja existe, tente outro nome\n");
+                    }
+                }
+                printf("Digite sua senha: ");
+                scanf("%s", &usuario.pass);
+                strcpy(usuario.key, usuario.user);
+                strcat(usuario.key, " ");
+                strcat(usuario.key, usuario.pass);
+                security = i;
             }
         }
-    }while (errorLogin);
-    system("pause");
 }
+/*
+Função que salva o novo usuario no banco de dados
+bd = todos clientes que já existem
+cfpPath = caminho do banco para cpfs
+loginPath = caminho para usuarios
+*/
+void persistir (cliente* bd, char* cpfPath, char* loginPath)
+{
+    //salva o CPF do novo cliente na lista de CPFs já utilizados
+    arq = fopen(cpfPath, "a");
+    fprintf(arq, usuario.cpf);
+    fprintf(arq, "\n");
+    fclose(arq);
 
+    //salva o novo usuario e senha na lista
+    arq = fopen(loginPath, "w+");
+    fprintf(arq, "%i\n", qtdUsuarios+1);
+    for (int j = 0; j < qtdUsuarios+2; j++)
+    {
+        if(j == security)
+        {
+            fprintf(arq, usuario.user);
+            fprintf(arq, " ");
+            fprintf(arq, usuario.pass);
+            fprintf(arq, "\n");
+        }
+        fprintf(arq, bd[j].user);
+        fprintf(arq, " ");
+        fprintf(arq, bd[j].pass);
+        fprintf(arq, "\n");
+
+    }
+    fclose(arq);
+}
 int validaCPF(const int* cpf)
 {
     int digito1,
@@ -311,49 +378,23 @@ int validaCPF(const int* cpf)
     return 0;
 }
 
-int existe(cliente* bd, cliente c)
+int existe(cliente* search)
 {
-    if (strcmp(bd[0].user, c.user)  > 0)
-    {
-        security = 0;
+    if (strcmp(search[0].user, usuario.user)  > 0)
         return 0;
-    }
-    if (strcmp(bd[qtdUsuarios].user, c.user) < 0)
+    if (strcmp(search[qtdUsuarios].user, usuario.user) < 0)
+        return qtdUsuarios;
+
+    int posicao = 0;
+    while (posicao < qtdUsuarios + 1)
     {
-        security = qtdUsuarios;
-        return 0;
+        int re = strcmp(search[posicao].user, usuario.user);
+        if (re == 0)
+            return -10;
+        if (re > 0)
+            return posicao;
+        posicao++;
     }
-
-    int meio = qtdUsuarios/2;
-    int max_elem = qtdUsuarios;
-    int min_elem = 0;
-    int query = 0;
-    do
-    {
-        query = strcmp(bd[meio].user, c.user);
-        if (query < 0)
-        {
-            min_elem = meio + 1;
-            meio = (min_elem + ((max_elem - min_elem)/2));
-            security = min_elem;
-        }
-        else if (query > 0)
-        {
-            max_elem = meio;
-            meio = (min_elem + ((max_elem - min_elem)/2));
-            security = max_elem;
-        }
-        else
-        {
-            return 1;
-        }
-    }
-    while(meio >= min_elem && meio <= max_elem);
-
-    printf("min: %i max: %i", min_elem, max_elem);
-    system("pause");
-
-    return 0;
 }
 void lerCaminhos(caminho** bd, int qtd)
 {
@@ -370,4 +411,51 @@ void lerCaminhos(caminho** bd, int qtd)
     }
 
 }
+void procuraMenor(caminho** bd, int* menor, int* menorCaminho, int* procura, int* ult, int destino)
+{
+    for (int m = 0; m < qtdCaminhos; m++)
+    {
+        if(naoExiste(&menorCaminho, &procura, m) && bd[procura[ult[1]]][m].tempo != -1)
+        {
+            ult[1] = ult[1]++;
+            if(m == destino)
+            {
+                int simula = 0;
+                for(int n = 0; n < ult[1]; n++)
+                    simula += bd[procura[n]][procura[n+1]].tempo;
+                if(simula < menor)
+                {
+                    menor = simula;
+                    for(int n = 0; n < ult[1]+1; n++)
+                        menorCaminho[n] = procura[n];
+                }
+            }
+            else
+            {
+                int simula = 0;
+                for(int n = 0; n < ult[1]; n++)
+                    simula += bd[procura[n]][procura[n+1]].tempo;
+                if (simula > menor)
+                    break;
+                else
+                {
+                    ult[1]++;
+                    procura[ult[1]] = m;
+                    procuraMenor(&bd, &menor, &menorCaminho, &procura, &ult, destino);
+                }
+            }
 
+        }
+    }
+}
+int naoExiste(int* menorCaminho, int* procura, int m)
+{
+    for (int g = 0; g < qtdCaminhos; g++)
+    {
+        if (menorCaminho[g] == m)
+            return 0;
+        if (procura[g] == m)
+            return 0;
+    }
+    return 1;
+}
