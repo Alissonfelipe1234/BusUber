@@ -191,24 +191,19 @@ int main (void)
             menor = INT_MAX;
         }
         int b, simulado;
-        while (ultimos[1] < qtdCaminhos)
-        {
+        //while (ultimos[1] < qtdCaminhos)
+        //{
             for (int s = 0; s < qtdCaminhos; s++)
             {
-                printf(" %d", s);
                 procura[1] = s;
-                //procuraMenor(&caminhos, &menor, &menorCaminho, &procura, &ultimos, chegada);
                 simulado = 0;
                 int atual, prox;
                 bool possivel = true;
                 for(int c = 0; c < ultimos[1]; c++)
                 {
                     atual = procura[c];
-                    printf("\n atual: %d", atual);
                     prox = procura[c+1];
-                    printf("\n prox: %d", prox);
                     b = caminhos[atual][prox].tempo;
-                    printf("\n bd: %i", b);
 
                     if (b > 0)
                         simulado += b;
@@ -216,17 +211,14 @@ int main (void)
                     {
                         possivel = false;
                         c = ultimos[1];
-                        printf("\n caminho testado invalido %i", c);
                     }
 
                     if(simulado > menor)
                     {
                         possivel = false;
                         c = ultimos[1];
-                        printf("\n caminho testado invalido %i", c);
                     }
                 }
-                printf("\n fora");
                 if(possivel && simulado > menor)
                 {
                     for(int c = 0; c < ultimos[1] + 1; c++)
@@ -235,15 +227,16 @@ int main (void)
                     menor = simulado;
                 }
             }
-        }
+
+        //}
 
         printf("Caminho mais rapido: ");
         for(int d = 0; d < ultimos[0]+1; d++)
-            printf(" %d" , menorCaminho[d]);
+            printf("-> %d " , menorCaminho[d]);
 
         printf("\nTempo total em minutos: ");
         for(int d = 0; d < ultimos[0]; d++)
-            b = caminhos[procura[d]][procura[d+1]].tempo;
+            b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
         printf(" %d", b);
 
 
