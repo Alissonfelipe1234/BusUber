@@ -132,6 +132,7 @@ int main (void)
         toupper(rasc);
         //leitura do indice do caminho apartir do caracter
         chegada = rasc - 'A';
+        //printf("%i,%i", partida, chegada);
         if(partida == chegada || partida > qtdCaminhos || chegada > qtdCaminhos)
         {
             printf("local invalido\n");
@@ -141,8 +142,18 @@ int main (void)
         int menor = -1;
         int menorCaminho [qtdCaminhos];
         int procura [qtdCaminhos];
-        int ultimos[] = {0,0};
+        int ultimos[] = {0,3};
+        int fator;
+        int prova[qtdCaminhos];
+
         menorCaminho[0] = partida;
+        for(int x = 0; x < qtdCaminhos; x++)
+        {
+            if(naoExiste(menorCaminho, x))
+                prova[x] = x;
+            procura[x] = chegada;
+        }
+        procura[0] = partida;
 
         if(caminhos[partida][chegada].tempo > 0)
         {
@@ -155,19 +166,26 @@ int main (void)
         {
             menor = INT_MAX;
         }
-        for(int p = 0; p < qtdCaminhos; p++)
+
+        while (ultimos[1] < qtdCaminhos)
         {
-            if(caminhos[partida][p].tempo > 0)
+            for (int s = 0; s < qtdCaminhos; s++)
             {
-                procura[0] = partida;
-                procura[1] = p;
-                ultimos[1] = 1;
+                printf(" %d", s);
+                procura[1] = s;
                 procuraMenor(&caminhos, &menor, &menorCaminho, &procura, &ultimos, chegada);
             }
         }
-        printf("menor tempo: %i\n", menor);
-        for (int d=0; d < ultimos[0]; d++)
-            printf("vai para: %i\n", menorCaminho[d]);
+
+        printf("Caminho mais rapido: ");
+        for(int d = 0; d < ultimos[0]+1; d++)
+            printf(" %d" , menorCaminho[d]);
+        int b;
+        printf("\nTempo total em minutos: ");
+        for(int d = 0; d < ultimos[0]; d++)
+            b = caminhos[procura[d]][procura[d+1]].tempo;
+        printf(" %d", b);
+
 
     }
 
@@ -411,49 +429,58 @@ void lerCaminhos(caminho** bd, int qtd)
     }
 
 }
-void procuraMenor(caminho** bd, int* menor, int* menorCaminho, int* procura, int* ult, int destino)
+void procuraMenor(caminho ** banco, int* menor, int* menorCaminho, int* procura, int* ult, int destino)
 {
-    for (int m = 0; m < qtdCaminhos; m++)
+    int b, simulado = 0;
+    int atual, prox;
+    bool possivel = true;
+    for(int c = 0; c < ult[1]; c++)
     {
-        if(naoExiste(&menorCaminho, &procura, m) && bd[procura[ult[1]]][m].tempo != -1)
-        {
-            ult[1] = ult[1]++;
-            if(m == destino)
-            {
-                int simula = 0;
-                for(int n = 0; n < ult[1]; n++)
-                    simula += bd[procura[n]][procura[n+1]].tempo;
-                if(simula < menor)
-                {
-                    menor = simula;
-                    for(int n = 0; n < ult[1]+1; n++)
-                        menorCaminho[n] = procura[n];
-                }
-            }
-            else
-            {
-                int simula = 0;
-                for(int n = 0; n < ult[1]; n++)
-                    simula += bd[procura[n]][procura[n+1]].tempo;
-                if (simula > menor)
-                    break;
-                else
-                {
-                    ult[1]++;
-                    procura[ult[1]] = m;
-                    procuraMenor(&bd, &menor, &menorCaminho, &procura, &ult, destino);
-                }
-            }
+        printf("\n dentro: %d", c);
+        atual = procura[c];
+        printf("\n atual: %d", atual);
+        prox = procura[c+1];
+        printf("\n prox: %d", prox);
+        b = banco[atual][prox].tempo;
 
+        if (b > 0)
+            simulado += b;
+        else
+        {
+            possivel = false;
+            c = ult[1];
+            printf("\n dentro: %d", c);
+        }
+
+        if(simulado > menor)
+        {
+            possivel = false;
+            c = ult[1];
+            printf("\n dentro: %d", c);
         }
     }
+    printf("\n fora");
+    if(possivel && simulado > menor)
+    {
+        for(int c = 0; c < ult[1] + 1; c++)
+            menorCaminho[c] = procura[c];
+        ult[0] = ult[1];
+        menor = simulado;
+    }
 }
-int naoExiste(int* menorCaminho, int* procura, int m)
+int calculeFatorial(int x)
+{
+    int c = 2, r = 1;
+    while (c <= x)
+    {
+        r = r * c;
+        c++;
+    }
+}
+int naoExiste(int* procura, int m)
 {
     for (int g = 0; g < qtdCaminhos; g++)
     {
-        if (menorCaminho[g] == m)
-            return 0;
         if (procura[g] == m)
             return 0;
     }
