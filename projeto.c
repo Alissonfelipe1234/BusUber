@@ -34,7 +34,7 @@ int main (void)
     login = false;
     qtdUsuarios = -1;
 
-    inicio:
+
     arq = fopen(bds[0], "r");
 	if(arq == NULL)
     {
@@ -59,6 +59,7 @@ int main (void)
     fclose(arq);
     printf("OK\n");
 
+    telaInicio:
     configurarAmbiente();
     printf("           *****************************************************************************************************\n");
     printf("           *               __________              ____ ______.                                                *\n           *               %c______   %c__ __  _____|    |   %c_ |__   ___________                                *\n           *                |    |  _/  |  %c/  ___/    |   /| __ %c_/ __ %c_  __ %c                               *\n           *                |    |   %c  |  /%c___ %c|    |  / | %c_%c %c  ___/|  | %c/                               *\n           *                |______  /____//____  >______/  |___  /%c___  >__|                                  *\n           *                       %c/           %c/              %c/     %c/                                      *", 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92);
@@ -90,7 +91,7 @@ int main (void)
                 cadastrar(&clientes, &bds[1]);
             }while (errorLogin);
             persistir(&clientes, &bds[1], &bds[0]);
-            goto inicio;
+            goto telaInicio;
             break;
         default:
             printf("Saindo... OK");
@@ -110,7 +111,7 @@ int main (void)
         system("COLOR 01");
         Sleep(100);
         system("COLOR C0");
-        Sleep(100);
+        Sleep(1500);
 
         arq = fopen(bds[2], "r+");
         if(arq == NULL)
@@ -147,20 +148,16 @@ int main (void)
 
         fclose(arq);
 
+        configurarAmbiente();
         int partida, chegada;
         char rasc;
         ErroNoIndice:
-        printf("Digite o local de partida: ");
-        scanf(" %c", &rasc);
-        toupper(rasc);
-        //leitura do indice do caminho apartir do caracter
-        partida = rasc - 'A';
+        printf("Locais possiveis de 1 a %d\nDigite o local de partida: ", qtdCaminhos);
+        scanf(" %i", &partida);
+        partida = partida - 1;
         printf("Digite o destino: ");
-        scanf(" %c", &rasc);
-        toupper(rasc);
-        //leitura do indice do caminho apartir do caracter
-        chegada = rasc - 'A';
-        //printf("%i,%i", partida, chegada);
+        scanf(" %i", &rasc);
+        chegada = chegada - 1;
         if(partida == chegada || partida > qtdCaminhos || chegada > qtdCaminhos)
         {
             printf("local invalido\n");
@@ -194,14 +191,13 @@ int main (void)
         {
             menor = INT_MAX;
         }
-        int b, simulado;
-
+        int b, simulado, atual, prox;
+        bool possivel;
         for (int s = 0; s < qtdCaminhos; s++)
         {
             procura[1] = s;
             simulado = 0;
-            int atual, prox;
-            bool possivel = true;
+            possivel = true;
             for(int c = 0; c < ultimos[1]; c++)
             {
                 atual = procura[c];
@@ -222,7 +218,7 @@ int main (void)
                     c = ultimos[1];
                 }
             }
-            if(possivel && simulado > menor)
+            if(possivel && simulado < menor)
             {
                 for(int c = 0; c < ultimos[1] + 1; c++)
                     menorCaminho[c] = procura[c];
@@ -236,6 +232,76 @@ int main (void)
             printf("-> %d " , menorCaminho[d]);
 
         printf("\nTempo total em minutos: ");
+        for(int d = 0; d < ultimos[0]; d++)
+            b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
+        printf(" %d", b);
+
+
+        //procura caminho com menor custo
+        menor = -1;
+        ultimos[0] = 0;
+        ultimos[1] = 3;
+
+        menorCaminho[0] = partida;
+        for(int x = 0; x < qtdCaminhos; x++)
+        {
+            if(naoExiste(menorCaminho, x))
+                prova[x] = x;
+            procura[x] = chegada;
+        }
+        procura[0] = partida;
+
+        if(caminhos[partida][chegada].preco > 0)
+        {
+            menor = caminhos[partida][chegada].preco;
+            menorCaminho[1] = chegada;
+            ultimos[0] = 1;
+
+        }
+        else
+        {
+            menor = INT_MAX;
+        }
+
+        for (int t = 0; t < qtdCaminhos; t++)
+        {
+            procura[1] = t;
+            simulado = 0;
+            possivel = true;
+            for(int c = 0; c < ultimos[1]; c++)
+            {
+                atual = procura[c];
+                prox = procura[c+1];
+                b = caminhos[atual][prox].preco;
+
+                if (b > 0)
+                    simulado += b;
+                else
+                {
+                    possivel = false;
+                    c = ultimos[1];
+                }
+
+                if(simulado > menor)
+                {
+                    possivel = false;
+                    c = ultimos[1];
+                }
+            }
+            if(possivel && simulado < menor)
+            {
+                for(int c = 0; c < ultimos[1] + 1; c++)
+                    menorCaminho[c] = procura[c];
+                ultimos[0] = ultimos[1];
+                menor = simulado;
+            }
+        }
+
+        printf("\nCaminho de menor custo: ");
+        for(int d = 0; d < ultimos[0]+1; d++)
+            printf("-> %d " , menorCaminho[d]);
+
+        printf("\nPreço total em reais: ");
         for(int d = 0; d < ultimos[0]; d++)
             b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
         printf(" %d", b);
@@ -339,7 +405,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
             {
                 printf(" Erro \nNao foi possivel conectar ao banco de de CPF\n");
             }
-            for(int c = 0; c < qtdUsuarios + 1 && !errorLogin; c++)
+            for(int c = 0; c < qtdUsuarios+1 && !errorLogin; c++)
             {
                 fscanf(arq, "%s", &bd[c].cpf);
                 if(strcmp(bd[c].cpf, usuario.cpf) == 0)
@@ -484,6 +550,7 @@ void lerCaminhos(caminho** bd, int qtd)
         linha++;
     }
 }
+/* ERRO ENCONTRADO EM PARAMETRO
 void procuraMenor(caminho ** banco, int* menor, int* menorCaminho, int* procura, int* ult, int destino)
 {
     int b, simulado = 0;
@@ -532,6 +599,7 @@ int calculeFatorial(int x)
         c++;
     }
 }
+*/
 int naoExiste(int* procura, int m)
 {
     for (int g = 0; g < qtdCaminhos; g++)
