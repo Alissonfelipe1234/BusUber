@@ -26,12 +26,15 @@ int qtdUsuarios, security, qtdCaminhos;
 bool login, errorLogin;
 int main (void)
 {
+
+
     char bds[][120] = {"FlashBD.txt","ValidaCPF.txt","Rotas.txt"};
     int linha = 0, escolha;
     errorLogin = false;
     login = false;
     qtdUsuarios = -1;
 
+    inicio:
     arq = fopen(bds[0], "r");
 	if(arq == NULL)
     {
@@ -87,6 +90,7 @@ int main (void)
                 cadastrar(&clientes, &bds[1]);
             }while (errorLogin);
             persistir(&clientes, &bds[1], &bds[0]);
+            goto inicio;
             break;
         default:
             printf("Saindo... OK");
@@ -242,13 +246,7 @@ int main (void)
 
     }
 
-
-
-
-
-    system("pause");
-    return 1;
-
+return 1;
 }
 
 void configurarAmbiente ()
@@ -421,6 +419,12 @@ int validaCPF(const int* cpf)
     int digito1,
         digito2,
         temp = 0;
+    int tudoIgual = 0;
+    for(int i = 0; i < 10; i++)
+        if (cpf[i] == cpf[i+1])
+            tudoIgual++;
+    if(tudoIgual == 11)
+        return 0;
 
     for(int i = 0; i < 9; i++)
         temp += (cpf[i] * (10 - i));
