@@ -195,44 +195,41 @@ int main (void)
             menor = INT_MAX;
         }
         int b, simulado;
-        //while (ultimos[1] < qtdCaminhos)
-        //{
-            for (int s = 0; s < qtdCaminhos; s++)
+
+        for (int s = 0; s < qtdCaminhos; s++)
+        {
+            procura[1] = s;
+            simulado = 0;
+            int atual, prox;
+            bool possivel = true;
+            for(int c = 0; c < ultimos[1]; c++)
             {
-                procura[1] = s;
-                simulado = 0;
-                int atual, prox;
-                bool possivel = true;
-                for(int c = 0; c < ultimos[1]; c++)
+                atual = procura[c];
+                prox = procura[c+1];
+                b = caminhos[atual][prox].tempo;
+
+                if (b > 0)
+                    simulado += b;
+                else
                 {
-                    atual = procura[c];
-                    prox = procura[c+1];
-                    b = caminhos[atual][prox].tempo;
-
-                    if (b > 0)
-                        simulado += b;
-                    else
-                    {
-                        possivel = false;
-                        c = ultimos[1];
-                    }
-
-                    if(simulado > menor)
-                    {
-                        possivel = false;
-                        c = ultimos[1];
-                    }
+                    possivel = false;
+                    c = ultimos[1];
                 }
-                if(possivel && simulado > menor)
+
+                if(simulado > menor)
                 {
-                    for(int c = 0; c < ultimos[1] + 1; c++)
-                        menorCaminho[c] = procura[c];
-                    ultimos[0] = ultimos[1];
-                    menor = simulado;
+                    possivel = false;
+                    c = ultimos[1];
                 }
             }
-
-        //}
+            if(possivel && simulado > menor)
+            {
+                for(int c = 0; c < ultimos[1] + 1; c++)
+                    menorCaminho[c] = procura[c];
+                ultimos[0] = ultimos[1];
+                menor = simulado;
+            }
+        }
 
         printf("Caminho mais rapido: ");
         for(int d = 0; d < ultimos[0]+1; d++)
@@ -342,7 +339,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
             {
                 printf(" Erro \nNao foi possivel conectar ao banco de de CPF\n");
             }
-            for(int c = 0; c < qtdUsuarios && !errorLogin; c++)
+            for(int c = 0; c < qtdUsuarios + 1 && !errorLogin; c++)
             {
                 fscanf(arq, "%s", &bd[c].cpf);
                 if(strcmp(bd[c].cpf, usuario.cpf) == 0)
@@ -423,7 +420,7 @@ int validaCPF(const int* cpf)
     for(int i = 0; i < 10; i++)
         if (cpf[i] == cpf[i+1])
             tudoIgual++;
-    if(tudoIgual == 11)
+    if(tudoIgual == 10)
         return 0;
 
     for(int i = 0; i < 9; i++)
