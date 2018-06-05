@@ -22,6 +22,7 @@ typedef struct {
 
 cliente usuario;
 FILE *arq;
+char Bancos[][120] = {"FlashBD.txt","ValidaCPF.txt","Rotas.txt"};
 int qtdUsuarios, security, qtdCaminhos;
 bool login, errorLogin;
 int main (void)
@@ -90,7 +91,7 @@ int main (void)
             do{
                 cadastrar(&clientes, &bds[1]);
             }while (errorLogin);
-            persistir(&clientes, &bds[1], &bds[0]);
+            persistir(&clientes);
             goto telaInicio;
             break;
         default:
@@ -449,29 +450,41 @@ bd = todos clientes que já existem
 cfpPath = caminho do banco para cpfs
 loginPath = caminho para usuarios
 */
-void persistir (cliente* bd, char* cpfPath, char* loginPath)
+void persistir (cliente* bd)
 {
     //salva o CPF do novo cliente na lista de CPFs já utilizados
-    arq = fopen(cpfPath, "a");
-    fprintf(arq, usuario.cpf);
-    fprintf(arq, "\n");
+    arq = fopen(Bancos[1], "r");
+    char backup[qtdUsuarios][11];
+    for(int g = 0; g < qtdUsuarios; g++)
+    {
+        fscanf(arq, "%s", &backup[g]);
+        printf("%s \n", backup[g]);
+    }
+    Sleep(9000);
+    fclose(arq);
+    arq = fopen(Bancos[1], "w+");
+    for(int u = 0; u < qtdUsuarios; u++)
+    {
+        if(u == security){
+            fprintf(arq, usuario.cpf);
+            fprintf(arq, " \n");
+            }
+        fprintf(arq, backup[u]);
+        fprintf(arq, " \n");
+    }
     fclose(arq);
 
     //salva o novo usuario e senha na lista
-    arq = fopen(loginPath, "w+");
+    arq = fopen(Bancos[0], "w+");
     fprintf(arq, "%i\n", qtdUsuarios+1);
-    for (int j = 0; j < qtdUsuarios+2; j++)
+    for (int j = 0; j < qtdUsuarios; j++)
     {
         if(j == security)
         {
-            fprintf(arq, usuario.user);
-            fprintf(arq, " ");
-            fprintf(arq, usuario.pass);
+            fprintf(arq, usuario.user);fprintf(arq, " ");fprintf(arq, usuario.pass);
             fprintf(arq, "\n");
         }
-        fprintf(arq, bd[j].user);
-        fprintf(arq, " ");
-        fprintf(arq, bd[j].pass);
+        fprintf(arq, bd[j].user);fprintf(arq, " ");fprintf(arq, bd[j].pass);
         fprintf(arq, "\n");
 
     }
