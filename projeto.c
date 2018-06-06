@@ -141,7 +141,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
                 {
                     printf("Escolha um nome de usuario: ");
                     scanf("%s", &usuario.user);
-                    i = existe(&nomes);
+                    i = existe(&bd);
                     if(i<0)
                     {
                         configurarAmbiente();
@@ -302,23 +302,18 @@ int main (void)
                 cadastrar(&clientes, &Bancos[1]);
             }while (errorLogin);
             persistir();
-            arq = fopen(Bancos[0], "w+");
-            fprintf(arq, "%i\n", qtdUsuarios+1);
+            arq = fopen(Bancos[0], "r");
+            printf("%i\n", qtdUsuarios+1);
             for (int o = 0; o < qtdUsuarios; o++)
             {
                 if(o == security)
                 {
-                    fprintf(arq, usuario.user);
-                    fprintf(arq, " ");
-                    fprintf(arq, usuario.pass);
-                    fprintf(arq, "\n");
+                    printf("%s \n", usuario.key);
                 }
-                fprintf(arq, clientes[o].user);
-                fprintf(arq, " ");
-                fprintf(arq, clientes[o].pass);
-                fprintf(arq, "\n");
+                printf("%s \n", clientes[o].key);
             }
             fclose(arq);
+            Sleep(9000000);
             goto telaInicio;
             break;
         default:
@@ -540,16 +535,14 @@ int main (void)
 
 /*
 Função que salva o novo usuario no banco de dados
-bd = todos clientes que já existem
-cfpPath = caminho do banco para cpfs
-loginPath = caminho para usuarios
+nom = todos clientes que já existem
 */
-void persistir()
+void persistir(cliente*nom)
 {
     //salva o CPF do novo cliente na lista de CPFs já utilizados
-    arq = fopen(Bancos[1], "a");
+    /*arq = fopen(Bancos[1], "a");
     fprintf(arq, usuario.cpf);
     fprintf(arq, "\n");
-    fclose(arq);
+    fclose(arq);*/
 
 }
