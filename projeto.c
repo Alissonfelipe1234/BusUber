@@ -5,6 +5,7 @@
 #include <locale.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 //#include <allegro.h>
 
 typedef struct {
@@ -252,9 +253,11 @@ void lerCaminhos(caminho** bd, int qtd)
         while(coluna<qtd)
         {
             fscanf(arq, "%d", &bd[linha][coluna].tempo);
+            fscanf(arq, "%d", &bd[linha][coluna].preco);
             printf("\n teste: %i", bd[linha][coluna].tempo);
+            printf("\n teste: %i", bd[linha][coluna].preco);
             coluna++;
-
+            Sleep(200000000);
         }
         coluna = 0;
         linha++;
@@ -385,8 +388,6 @@ int main (void)
             coluna = 0;
             linha++;
         }
-
-
         fclose(arq);
 
         configurarAmbiente();
@@ -395,9 +396,8 @@ int main (void)
         ErroNoIndice:
         printf("Locais possiveis de 1 a %d\nDigite o local de partida: ", qtdCaminhos);
         scanf(" %i", &partida);
-        partida = partida - 1;
         printf("Digite o destino: ");
-        scanf(" %i", &rasc);
+        scanf(" %i", &chegada);
         if(partida == chegada)
         {
             printf("local invalido\n");
@@ -406,6 +406,7 @@ int main (void)
 
         chegada++;
         partida--;
+
         int menor = -1;
         int menorCaminho [qtdCaminhos];
         int procura [qtdCaminhos];
@@ -422,13 +423,11 @@ int main (void)
             procura[x] = chegada;
         }
         procura[0] = partida;
-                Sleep(900000000);
         if(caminhos[partida][chegada].tempo > 0)
         {
             menor = caminhos[partida][chegada].tempo;
             menorCaminho[1] = chegada;
             ultimos[0] = 1;
-
         }
         else
         {
@@ -543,7 +542,7 @@ int main (void)
         for(int d = 0; d < ultimos[0]+1; d++)
             printf("-> %d " , menorCaminho[d]);
 
-        printf("\nPreço total em reais: ");
+        printf("\nPreco total em reais: ");
         for(int d = 0; d < ultimos[0]; d++)
             b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
         printf(" %d", b);
