@@ -5,6 +5,7 @@
 #include <locale.h>
 #include <string.h>
 #include <limits.h>
+//#include <allegro.h>
 
 typedef struct {
     char key[125],
@@ -86,7 +87,7 @@ void logar(cliente* bd)
 
     printf("OK\n");
 }
-void cadastrar (cliente* bd, char* cpfsPath)
+void cadastrar (cliente* bd)
 {
 
         errorLogin = false;
@@ -114,7 +115,7 @@ void cadastrar (cliente* bd, char* cpfsPath)
         {
             printf("Consultando o Banco de dados...");
 
-            arq = fopen(cpfsPath, "r");
+            arq = fopen(Bancos[1], "r");
             if(arq == NULL)
             {
                 printf(" Erro \nNao foi possivel conectar ao banco de de CPF\n");
@@ -136,12 +137,16 @@ void cadastrar (cliente* bd, char* cpfsPath)
                 cliente nomes[qtdUsuarios];
 
                 for (int z = 0; z < qtdUsuarios+1; z++)
+                {
                     strcpy(nomes[z].user, bd[z].user);
+                    strcpy(nomes[z].pass, bd[z].pass);
+                    strcpy(nomes[z].key, bd[z].key);
+                }
                 while (i < 0)
                 {
                     printf("Escolha um nome de usuario: ");
                     scanf("%s", &usuario.user);
-                    i = existe(&bd);
+                    i = existe(&nomes);
                     if(i<0)
                     {
                         configurarAmbiente();
@@ -154,8 +159,33 @@ void cadastrar (cliente* bd, char* cpfsPath)
                 strcat(usuario.key, " ");
                 strcat(usuario.key, usuario.pass);
                 security = i;
+                persistir(&nomes);
             }
+
         }
+}
+/*
+Função que salva o novo usuario no banco de dados
+nom = todos clientes que já existem
+*/
+void persistir(cliente* nom)
+{
+    //salva o CPF do novo cliente na lista de CPFs já utilizados
+    arq = fopen(Bancos[1], "a");
+    fprintf(arq, "%s \n", usuario.cpf);
+    fclose(arq);
+
+    arq = fopen(Bancos[0], "w+");
+    fprintf(arq, "%i \n", qtdUsuarios+1);
+    for(int x = 0; x < qtdUsuarios; x++)
+    {
+        if(x == security)
+            fprintf(arq, "%s \n", usuario.key);
+        fprintf(arq, "%s %s\n", nom[x].user, nom[x].pass);
+    }
+    if (security == qtdUsuarios)
+        fprintf(arq, "%s \n", usuario.key);
+    qtdUsuarios = qtdUsuarios + 1;
 }
 int validaCPF(const int* cpf)
 {
@@ -270,7 +300,6 @@ int main (void)
     fclose(arq);
     printf("OK\n");
 
-    telaInicio:
     configurarAmbiente();
     printf("           *****************************************************************************************************\n");
     printf("           *               __________              ____ ______.                                                *\n           *               %c______   %c__ __  _____|    |   %c_ |__   ___________                                *\n           *                |    |  _/  |  %c/  ___/    |   /| __ %c_/ __ %c_  __ %c                               *\n           *                |    |   %c  |  /%c___ %c|    |  / | %c_%c %c  ___/|  | %c/                               *\n           *                |______  /____//____  >______/  |___  /%c___  >__|                                  *\n           *                       %c/           %c/              %c/     %c/                                      *", 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92);
@@ -299,22 +328,11 @@ int main (void)
         case 2:
             configurarAmbiente();
             do{
-                cadastrar(&clientes, &Bancos[1]);
+                cadastrar(&clientes);
             }while (errorLogin);
-            persistir();
-            arq = fopen(Bancos[0], "r");
-            printf("%i\n", qtdUsuarios+1);
-            for (int o = 0; o < qtdUsuarios; o++)
-            {
-                if(o == security)
-                {
-                    printf("%s \n", usuario.key);
-                }
-                printf("%s \n", clientes[o].key);
-            }
-            fclose(arq);
-            Sleep(9000000);
-            goto telaInicio;
+            Sleep(8000000000000000);
+            //system("EXIT");
+            //era para sair mas não estava funcionando
             break;
         default:
             printf("Saindo... OK");
@@ -336,7 +354,7 @@ int main (void)
         system("COLOR C0");
         Sleep(1500);
 
-        arq = fopen(Bancos[2], "r+");
+        arq = fopen(Bancos[2], "r");
         if(arq == NULL)
         {
             printf("Erro, nao foi possivel abrir o arquivo\n");
@@ -380,19 +398,21 @@ int main (void)
         partida = partida - 1;
         printf("Digite o destino: ");
         scanf(" %i", &rasc);
-        chegada = chegada - 1;
-        if(partida == chegada || partida > qtdCaminhos || chegada > qtdCaminhos)
+        if(partida == chegada)
         {
             printf("local invalido\n");
             goto ErroNoIndice;
-
         }
+
+        chegada++;
+        partida--;
         int menor = -1;
         int menorCaminho [qtdCaminhos];
         int procura [qtdCaminhos];
         int ultimos[] = {0,3};
         int fator;
         int prova[qtdCaminhos];
+
 
         menorCaminho[0] = partida;
         for(int x = 0; x < qtdCaminhos; x++)
@@ -402,7 +422,7 @@ int main (void)
             procura[x] = chegada;
         }
         procura[0] = partida;
-
+                Sleep(900000000);
         if(caminhos[partida][chegada].tempo > 0)
         {
             menor = caminhos[partida][chegada].tempo;
@@ -458,7 +478,6 @@ int main (void)
         for(int d = 0; d < ultimos[0]; d++)
             b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
         printf(" %d", b);
-
 
         //procura caminho com menor custo
         menor = -1;
@@ -531,18 +550,37 @@ int main (void)
 
 
     }
+    return 1;
 }
+
 
 /*
-Função que salva o novo usuario no banco de dados
-nom = todos clientes que já existem
-*/
-void persistir(cliente*nom)
-{
-    //salva o CPF do novo cliente na lista de CPFs já utilizados
-    /*arq = fopen(Bancos[1], "a");
-    fprintf(arq, usuario.cpf);
-    fprintf(arq, "\n");
-    fclose(arq);*/
+int mostraMapa() {
+    allegro_init();//INCIALIZAÇÃO DO ALLEGRO
+    install_timer();//ALGUNS PARAMETROS DE TEMPO
+    install_keyboard(); //PARA UTILIZAR O TECLADO
+    set_color_depth(32);//PROFUNDIDADE DE COR (32bits pois é o que roda em quase todos os PC's)
+    set_gfx_mode(GFX_AUTODETECT_WINDOWED, 540, 319, 0, 0);//PLACA DE VIDEO (windowed para janela) paramentros: Resolução.
+    set_window_title("Mapa"); //TITULO DA JANELA
 
+    int exit = FALSE;
+    BITMAP* buffer = create_bitmap(SCREEN_W, SCREEN_H);
+    BITMAP* mapa = load_bitmap("distrito.bmp", NULL);
+
+    while(!exit)
+    {
+        if(key[KEY_ESC])//TECLA PARA SAIR DA JANELA
+            exit = TRUE;
+
+        draw_sprite(buffer, mapa, 0, 0);
+
+        draw_sprite(screen, buffer, 0, 0);
+        clear(buffer);
+
+    }
+    destroy_bitmap(buffer);
+    destroy_bitmap(mapa);
+
+    return 0;
 }
+*/
