@@ -5,6 +5,7 @@
 #include <locale.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 #include <time.h>
 //#include <allegro.h>
 
@@ -20,6 +21,7 @@ typedef struct {
     int tempo;
     float preco;
 }caminho;
+
 
 cliente usuario;
 FILE *arq;
@@ -49,7 +51,7 @@ void logar(cliente* bd)
     strcat(usuario.key, " ");
     strcat(usuario.key, usuario.pass);
 
-    if ((strcmp(bd[0].key, usuario.key)  > 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) < 0))
+    if ((strcmp(bd[0].key, usuario.key)  < 0) || (strcmp(bd[qtdUsuarios].key, usuario.key) > 0))
     {
         errorLogin = true;
         printf("Erro ao logar, usuario não pode existir nesse banco");
@@ -245,24 +247,7 @@ int existe(cliente* search)
         posicao++;
     }
 }
-void lerCaminhos(caminho** bd, int qtd)
-{
-    int linha = 0, coluna = 0, rasc;
-    while (linha < qtd)
-    {
-        while(coluna<qtd)
-        {
-            fscanf(arq, "%d", &bd[linha][coluna].tempo);
-            fscanf(arq, "%d", &bd[linha][coluna].preco);
-            printf("\n teste: %i", bd[linha][coluna].tempo);
-            printf("\n teste: %i", bd[linha][coluna].preco);
-            coluna++;
-            Sleep(200000000);
-        }
-        coluna = 0;
-        linha++;
-    }
-}
+
 int naoExiste(int* procura, int m)
 {
     for (int g = 0; g < qtdCaminhos; g++)
@@ -272,7 +257,81 @@ int naoExiste(int* procura, int m)
     }
     return 1;
 }
+void dijkstra(int vertices,int origem,int destino,int *custos) {
 
+
+    int     i, v, /* variáveis auxiliares */
+            ant[vertices], /* vetor dos antecessores */
+            z[vertices]; /* vértices para os quais se conhece o caminho mínimo */
+
+    double  min, /* variável auxiliar */
+            dist[vertices]; /* vetor com os custos dos caminhos */
+
+
+/* Inicialização */
+    for (i=0;i<vertices;i++) {
+
+        if (custos[(origem-1)*vertices+i]!=-1) {
+            ant[i] = origem-1;
+            dist[i] = custos[(origem-1)*vertices+i];
+        }
+        else {
+            ant[i] = -1;
+            dist[i] = INT_MAX;
+        }
+
+        z[i]=0;
+    }
+
+    z[origem-1] = 1;
+    dist[origem-1] = 0;
+
+/* Laço principal */
+/* Encontrando o vértice que deve entrar em z */
+    do {
+
+        min=INT_MAX;
+        for (i=0;i<vertices;i++) {
+            if (!z[i]) {
+                if (dist[i] >= 0 && dist[i] < min) {
+                    min = dist[i];
+                    v = i;
+                }
+            }
+
+            /* Calculando as distâncias dos novos vizinhos de z */
+            if (min != INT_MAX && v != destino - 1) {
+                z[v] = 1;
+                for (i = 0; i < vertices; i++) {
+                    if (!z[i]) {
+                        if (custos[v * vertices + i] != -1 && dist[v] + custos[v * vertices + i] < dist[i]) {
+                            dist[i] = dist[v] + custos[v * vertices + i];
+                            ant[i] = v;
+                        }
+                    }
+                }
+            }
+        }
+    } while (v!=destino-1 && min!=INT_MAX);
+
+/* Imprimindo o resultado */
+
+    if (min==INT_MAX)
+        printf("\nNo digrafo dado não existe caminho entre as cidades %d e %d !!\n",origem,destino);
+
+    else
+    {
+        printf("\nMenor Caminho entre as cidades %d e %d é (na ordem reversa):\n", origem,destino);
+        i=destino;
+        printf("%d",i);
+        i=ant[i-1];
+        while (i!=-1) {
+            printf("<-%d",i+1);
+            i=ant[i];
+        }
+        printf("\nO custo deste caminho é: %d\n",(int) dist[destino-1]);
+    }
+}
 int main (void)
 {
     int linha = 0, escolha;
@@ -342,8 +401,7 @@ int main (void)
             //return 0;
     }
 
-    if(login)
-    {
+    if(login) {
         configurarAmbiente();
         printf(" _______  _______      ___  _______    _______  _______  __   __         __   __  ___   __    _  ______   _______ \n|       ||       |    |   ||   _   |  |  _    ||       ||  |_|  |       |  | |  ||   | |  |  | ||      | |       |   \n|  _____||    ___|    |   ||  |_|  |  | |_|   ||    ___||       | ____  |  |_|  ||   | |   |_| ||  _    ||   _   |   \n| |_____ |   |___     |   ||       |  |       ||   |___ |       ||____| |       ||   | |       || | |   ||  | |  |   \n|_____  ||    ___| ___|   ||       |  |  _   | |    ___||       |       |       ||   | |  _    || |_|   ||  |_|  |   \n _____| ||   |___ |       ||   _   |  | |_|   ||   |___ | ||_|| |        |     | |   | | | |   ||       ||       |   \n|_______||_______||_______||__| |__|  |_______||_______||_|   |_|         |___|  |___| |_|  |__||______| |_______|   \n");
         system("COLOR A0");
@@ -357,32 +415,35 @@ int main (void)
         system("COLOR C0");
         Sleep(1500);
 
+        configurarAmbiente();
         arq = fopen(Bancos[2], "r");
-        if(arq == NULL)
-        {
+        if (arq == NULL) {
             printf("Erro, nao foi possivel abrir o arquivo\n");
             return 0;
         }
 
+
         fscanf(arq, "%i", &qtdCaminhos);
         caminho caminhos[qtdCaminhos][qtdCaminhos];
+        int tempos [qtdCaminhos][qtdCaminhos];
+        float precos [qtdCaminhos][qtdCaminhos];
         int linha = 0, coluna = 0;
-        while (linha < qtdCaminhos)
-        {
-            while(coluna<qtdCaminhos)
-            {
+        while (linha < qtdCaminhos) {
+            while (coluna < qtdCaminhos) {
                 fscanf(arq, "%d", &caminhos[linha][coluna].tempo);
+                tempos[linha][coluna] = caminhos[linha][coluna].tempo;
+                printf(" %d", tempos[linha][coluna]);
                 coluna++;
             }
             coluna = 0;
             linha++;
         }
         linha = 0, coluna = 0;
-        while (linha < qtdCaminhos)
-        {
-            while(coluna<qtdCaminhos)
-            {
+        while (linha < qtdCaminhos) {
+            while (coluna < qtdCaminhos) {
                 fscanf(arq, "%f", &caminhos[linha][coluna].preco);
+                precos[linha][coluna] = caminhos[linha][coluna].preco;
+                printf(" %f", precos[linha][coluna]);
                 coluna++;
             }
             coluna = 0;
@@ -390,7 +451,6 @@ int main (void)
         }
         fclose(arq);
 
-        configurarAmbiente();
         int partida, chegada;
         char rasc;
         ErroNoIndice:
@@ -398,156 +458,17 @@ int main (void)
         scanf(" %i", &partida);
         printf("Digite o destino: ");
         scanf(" %i", &chegada);
-        if(partida == chegada)
-        {
+        if (partida == chegada) {
             printf("local invalido\n");
             goto ErroNoIndice;
         }
 
         chegada++;
         partida--;
-
-        int menor = -1;
-        int menorCaminho [qtdCaminhos];
-        int procura [qtdCaminhos];
-        int ultimos[] = {0,3};
-        int fator;
-        int prova[qtdCaminhos];
-
-
-        menorCaminho[0] = partida;
-        for(int x = 0; x < qtdCaminhos; x++)
-        {
-            if(naoExiste(menorCaminho, x))
-                prova[x] = x;
-            procura[x] = chegada;
-        }
-        procura[0] = partida;
-        if(caminhos[partida][chegada].tempo > 0)
-        {
-            menor = caminhos[partida][chegada].tempo;
-            menorCaminho[1] = chegada;
-            ultimos[0] = 1;
-        }
-        else
-        {
-            menor = INT_MAX;
-        }
-        int b, simulado, atual, prox;
-        bool possivel;
-        for (int s = 0; s < qtdCaminhos; s++)
-        {
-            procura[1] = s;
-            simulado = 0;
-            possivel = true;
-            for(int c = 0; c < ultimos[1]; c++)
-            {
-                atual = procura[c];
-                prox = procura[c+1];
-                b = caminhos[atual][prox].tempo;
-
-                if (b > 0)
-                    simulado += b;
-                else
-                {
-                    possivel = false;
-                    c = ultimos[1];
-                }
-
-                if(simulado > menor)
-                {
-                    possivel = false;
-                    c = ultimos[1];
-                }
-            }
-            if(possivel && simulado < menor)
-            {
-                for(int c = 0; c < ultimos[1] + 1; c++)
-                    menorCaminho[c] = procura[c];
-                ultimos[0] = ultimos[1];
-                menor = simulado;
-            }
-        }
-
-        printf("Caminho mais rapido: ");
-        for(int d = 0; d < ultimos[0]+1; d++)
-            printf("-> %d " , menorCaminho[d]);
-
-        printf("\nTempo total em minutos: ");
-        for(int d = 0; d < ultimos[0]; d++)
-            b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
-        printf(" %d", b);
-
-        //procura caminho com menor custo
-        menor = -1;
-        ultimos[0] = 0;
-        ultimos[1] = 3;
-
-        menorCaminho[0] = partida;
-        for(int x = 0; x < qtdCaminhos; x++)
-        {
-            if(naoExiste(menorCaminho, x))
-                prova[x] = x;
-            procura[x] = chegada;
-        }
-        procura[0] = partida;
-
-        if(caminhos[partida][chegada].preco > 0)
-        {
-            menor = caminhos[partida][chegada].preco;
-            menorCaminho[1] = chegada;
-            ultimos[0] = 1;
-
-        }
-        else
-        {
-            menor = INT_MAX;
-        }
-
-        for (int t = 0; t < qtdCaminhos; t++)
-        {
-            procura[1] = t;
-            simulado = 0;
-            possivel = true;
-            for(int c = 0; c < ultimos[1]; c++)
-            {
-                atual = procura[c];
-                prox = procura[c+1];
-                b = caminhos[atual][prox].preco;
-
-                if (b > 0)
-                    simulado += b;
-                else
-                {
-                    possivel = false;
-                    c = ultimos[1];
-                }
-
-                if(simulado > menor)
-                {
-                    possivel = false;
-                    c = ultimos[1];
-                }
-            }
-            if(possivel && simulado < menor)
-            {
-                for(int c = 0; c < ultimos[1] + 1; c++)
-                    menorCaminho[c] = procura[c];
-                ultimos[0] = ultimos[1];
-                menor = simulado;
-            }
-        }
-
-        printf("\nCaminho de menor custo: ");
-        for(int d = 0; d < ultimos[0]+1; d++)
-            printf("-> %d " , menorCaminho[d]);
-
-        printf("\nPreco total em reais: ");
-        for(int d = 0; d < ultimos[0]; d++)
-            b = caminhos[menorCaminho[d]][menorCaminho[d+1]].tempo;
-        printf(" %d", b);
-
-
+        printf("Considerando o tempo da viagem: \n");
+        dijkstra(qtdCaminhos, partida, chegada, &tempos);
+        printf("Considerando o preco da viagem: \n");
+        dijkstra(qtdCaminhos, partida, chegada, &precos);
     }
     return 1;
 }
