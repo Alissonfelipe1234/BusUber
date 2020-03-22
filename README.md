@@ -1,6 +1,6 @@
-<div style="text-align: center">
+<p align="center">
 <img src="https://raw.githubusercontent.com/Alissonfelipe1234/startPoint/master/icon.png" title="My First C project" alt="Start Point Project">
-</div>
+</p>
 
 # Star Point Project
 
